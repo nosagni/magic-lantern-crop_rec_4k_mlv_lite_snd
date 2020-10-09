@@ -2704,6 +2704,8 @@ static LVINFO_UPDATE_FUNC(alo_htp_update)
         alo == ALO_STD ? "Alo" :
         alo == ALO_HIGH ? "ALO" : ""
     );
+/* XXX WARNING */
+    item->color_fg = COLOR_RED;
 }
 
 #ifdef FEATURE_PICSTYLE
@@ -2864,6 +2866,13 @@ static LVINFO_UPDATE_FUNC(tv_update)
     else if (lens_info.raw_shutter)
     {
         snprintf(buffer, sizeof(buffer), "%s", lens_format_shutter(lens_info.raw_shutter));
+    }
+/* XXX Warning if shutter speed is not 50 for 25fps */    
+    int check_shutter = get_current_shutter_reciprocal_x1000() / 1000;
+    int check_fps = fps_get_current_x1000() / 1000;
+    if (check_fps == 25 && check_shutter != 50)
+    {
+        item->color_fg = COLOR_RED;
     }
 
     if (CONTROL_BV)
@@ -3030,7 +3039,21 @@ extern LVINFO_UPDATE_FUNC(focus_dist_update);
 static LVINFO_UPDATE_FUNC(af_mf_update)
 {
     LVINFO_BUFFER(4);
+/* XXX Warning that Auto Focus is on ++ */
+    
+    if (!is_movie_mode())
+    {
+        snprintf(buffer, sizeof(buffer), is_manual_focus() ? "MF" : "AF");
+    }
+    else if (!show_less)
+    {
     snprintf(buffer, sizeof(buffer), is_manual_focus() ? "MF" : "AF");
+    }
+    else if (!is_manual_focus())
+    {	
+        snprintf(buffer, sizeof(buffer), "AF");
+        item->color_fg = COLOR_RED;
+    }
 }
 
 static LVINFO_UPDATE_FUNC(batt_update)
