@@ -1678,8 +1678,8 @@ static LVINFO_UPDATE_FUNC(crop_info)
     }
 
     /* append info about current binning mode */
-
-    if (raw_lv_is_enabled())
+/* dont print binning info if not using crop_rec */
+    if (raw_lv_is_enabled() &&  crop_preset != 0)
     {
         /* fixme: raw_capture_info is only updated when LV RAW is active */
 
