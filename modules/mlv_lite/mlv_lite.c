@@ -101,6 +101,14 @@ static int cam_5d3 = 0;
 static int cam_5d3_113 = 0;
 static int cam_5d3_123 = 0;
 
+/* XXX Extras */
+char* core_name_now = 0;
+static int space_left_kb = 0;
+static int last_written = 0;
+static int last_chunk = -1;
+static int space_left = 1;
+static int automatic_stop = 1;
+
 /**
  * resolution (in pixels) should be multiple of 16 horizontally (see http://www.magiclantern.fm/forum/index.php?topic=5839.0)
  * furthermore, resolution (in bytes) should be multiple of 8 in order to use the fastest EDMAC flags ( http://magiclantern.wikia.com/wiki/Register_Map#EDMAC ),
@@ -1761,6 +1769,111 @@ void show_recording_status()
     }
 }
 
+/* XXX */
+static LVINFO_UPDATE_FUNC(compr_info)
+{
+    LVINFO_BUFFER(16);
+    if (!raw_video_enabled || !output_format) return;
+
+    if (output_format == 1)
+    {
+        snprintf(buffer, sizeof(buffer), "12b");
+        item->color_fg = COLOR_RED;
+        return;
+    };
+    if (output_format == 2)
+    {
+        snprintf(buffer, sizeof(buffer), "10b");
+        item->color_fg = COLOR_RED;
+        return;
+    };
+    if (output_format == 3)
+    {
+        snprintf(buffer, sizeof(buffer), "14L");
+        item->color_fg = COLOR_BLUE;
+        return;
+    };
+    if (output_format == 4)
+    {
+        snprintf(buffer, sizeof(buffer), "12L");
+        item->color_fg = COLOR_BLUE;
+        return;
+    }
+    if (output_format == 5)
+    {
+        snprintf(buffer, sizeof(buffer), "*L");
+        item->color_fg = COLOR_DARK_RED;
+        return;
+    };
+}
+
+/* XXX */
+static MENU_SELECT_FUNC(remove_last)
+{   
+    FIO_RemoveFile(raw_movie_filename);
+    static char filename[100];
+    snprintf(filename, sizeof(filename), "%s", raw_movie_filename);
+    int len = strlen(filename);
+
+    while (last_chunk != -1)
+    {
+        snprintf(filename + len - 2, 3, "%02d", last_chunk);
+        FIO_RemoveFile(filename);
+        --last_chunk;
+    }
+
+    raw_movie_filename = 0;
+    space_left_kb += last_written; // updates space_left
+    last_written = 0;
+}  
+
+/* XXX */
+static MENU_UPDATE_FUNC(remove_last_update)
+{
+    if (raw_movie_filename)
+        MENU_SET_VALUE(raw_movie_filename + 17);
+    else
+        MENU_SET_WARNING(MENU_WARN_NOT_WORKING, "No recent clip.");
+}
+
+/* Display space left in top info bar */
+static LVINFO_UPDATE_FUNC(space_left_update)
+{
+    LVINFO_BUFFER(12);
+    
+    if (!raw_video_enabled) return;
+
+    static int startup = 0;
+    static int the_kb = 0;
+
+    if (startup < 1) // update from camera only at startup
+    {
+        int free_space_32k = get_free_space_32k(get_shooting_card());
+        space_left_kb = (free_space_32k / 32) * 1024;
+        startup = 1;
+    }
+        
+    if (RAW_IS_RECORDING)    
+    { 
+        the_kb = space_left_kb - (written_total / 1024); // update from "written now" if recording
+        
+    }
+    else // if not recording:
+    {
+        the_kb = space_left_kb; // update from existing "space left size" if not recording
+    }
+    if (space_left)
+    {
+        /* print space left */
+        int insize_gb = (the_kb / 1024 * 10 + 5) / 1024;
+        snprintf(buffer, sizeof(buffer), "%d.%d GB", insize_gb / 10, insize_gb % 10);
+        if (the_kb < 5242880) // if size goes below 5GB
+        {
+            item->color_fg = COLOR_RED; // warn with red
+        }
+    }
+}
+
 static REQUIRES(ShootTask) EXCLUDES(settings_sem)
 unsigned int raw_rec_polling_cbr(unsigned int unused)
 {
@@ -2830,6 +2943,8 @@ static const char* get_cf_dcim_dir()
 
 static char* get_next_raw_movie_file_name()
 {
+/* XXX */
+    char core_name[100];
     static char filename[100];
 
     struct tm now;
@@ -2851,7 +2966,10 @@ static char* get_next_raw_movie_file_name()
              * Get unique file names from the current date/time
              * last field gets incremented if there's another video with the same name
              */
-            snprintf(filename, sizeof(filename), "%s/M%02d-%02d%02d.MLV", get_cf_dcim_dir(), now.tm_mday, now.tm_hour, COERCE(now.tm_min + number, 0, 99));
+/* XXX a new file naming system */
+        snprintf(core_name, sizeof(core_name), "%02d%02d%02d-%02d%02d%02d", now.tm_year - 100, now.tm_mon +1, now.tm_mday, now.tm_hour, now.tm_min, COERCE(now.tm_sec + number, 0, 99));
+        snprintf(filename, sizeof(filename), "%s/%s.MLV", get_dcim_dir(), core_name);
+        core_name_now = core_name;    
         }
         
         /* already existing file? */
@@ -3081,6 +3199,8 @@ int write_frames(FILE** pf, void* ptr, int group_size, int num_frames)
         finish_chunk(f);
         /* try to create a new chunk */
         chunk_filename = get_next_chunk_file_name(raw_movie_filename, ++mlv_chunk);
+/* XXX */
+        last_chunk = mlv_chunk -1;
         printf("Creating new chunk: %s\n", chunk_filename);
         FILE* g = FIO_CreateFile(chunk_filename);
         if (!g) return 0;
@@ -3260,6 +3380,19 @@ void raw_video_rec_task()
             goto abort_and_check_early_stop;
         }
         
+/* XXX automatic_stop */
+        if (automatic_stop)
+        {
+            int check_space_left = space_left_kb - (written_total / 1024);
+            if (check_space_left < 262144)
+            {
+                NotifyBox(5000, "Only 256mb space left.");
+                space_left_kb -= (written_total / 1024); // updates space_left
+                last_written = (written_total / 1024);
+                break;
+            }
+         }
+
         if (use_h264_proxy())
         {
             if (get_shooting_card()->drive_letter[0] == raw_movie_filename[0])
@@ -3625,7 +3758,9 @@ void raw_start_stop()
     {
         printf("Stopping raw recording...\n");
         raw_recording_state = RAW_FINISHING;
-        beep();
+/* XXX */
+        space_left_kb -= (written_total / 1024);
+        last_written = (written_total / 1024);
     }
     else
     {
@@ -3802,6 +3937,14 @@ static struct menu_entry raw_video_menu[] =
                 .update = raw_playback_update,
                 .icon_type = IT_ACTION,
                 .help = "Play back the last raw video clip.",
+            },
+/* XXX Add Extras to the Menu */
+            {
+                .name = "Remove last clip",
+                .select = remove_last,
+                .update = remove_last_update,
+                .icon_type = IT_ACTION,
+                .help = "Remove the last raw video clip.",
             },
             MENU_ADVANCED_TOGGLE,
             MENU_EOL,
@@ -4125,7 +4268,22 @@ static struct lvinfo_item info_items[] = {
         .update = recording_status,
         .preferred_position = 50,
         .priority = 10,
-    }
+    },
+/* XXX */
+    {
+        .name = "space_left_update",
+        .which_bar = LV_TOP_BAR_ONLY,
+        .update = space_left_update,
+        .preferred_position = 40,
+        .priority = 10,
+    },
+    {
+        .name = "compr_info",
+        .which_bar = LV_BOTTOM_BAR_ONLY,
+        .update = compr_info,
+        .preferred_position = -50,
+        .priority = 1,
+    },
 };
 
 static unsigned int raw_rec_init()
