@@ -616,7 +616,8 @@ debug_loop_task( void* unused ) // screenshot, draw_prop
 
 static void screenshot_start(void* priv, int delta)
 {
-    screenshot_sec = 10;
+/*XXX*/
+    screenshot_sec = 5;
 }
 
 #ifdef FEATURE_SHOW_IMAGE_BUFFERS_INFO
@@ -859,10 +860,11 @@ static struct menu_entry debug_menus[] = {
         .help = "Turn on the front LED [PLAY] or make display bright [SET]."
     },*/
     #ifdef FEATURE_SCREENSHOT
+/*XXX*/
     {
-        .name   = "Screenshot - 10s",
+        .name   = "Screenshot - 5s",
         .select = screenshot_start,
-        .help   = "Screenshot after 10 seconds => VRAMx.PPM.",
+        .help   = "Screenshot after 5 seconds => VRAMx.PPM.",
         .help2  = "The screenshot will contain BMP and YUV overlays."
     },
     #endif
