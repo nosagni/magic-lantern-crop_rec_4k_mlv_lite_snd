@@ -616,7 +616,7 @@ debug_loop_task( void* unused ) // screenshot, draw_prop
 
 static void screenshot_start(void* priv, int delta)
 {
-/*XXX*/
+/*XxX screenshot_sec = 5 */
     screenshot_sec = 5;
 }
 
@@ -860,7 +860,7 @@ static struct menu_entry debug_menus[] = {
         .help = "Turn on the front LED [PLAY] or make display bright [SET]."
     },*/
     #ifdef FEATURE_SCREENSHOT
-/*XXX*/
+/*XxX screenshot_sec = 5 */
     {
         .name   = "Screenshot - 5s",
         .select = screenshot_start,

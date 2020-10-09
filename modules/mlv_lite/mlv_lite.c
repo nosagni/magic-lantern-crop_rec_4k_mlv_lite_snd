@@ -101,7 +101,7 @@ static int cam_5d3 = 0;
 static int cam_5d3_113 = 0;
 static int cam_5d3_123 = 0;
 
-/* XXX Extras */
+/* XxX Extras */
 char* core_name_now = 0;
 static int space_left_kb = 0;
 static int last_written = 0;
@@ -1769,7 +1769,7 @@ void show_recording_status()
     }
 }
 
-/* XXX */
+/* XxX info on compression */
 static LVINFO_UPDATE_FUNC(compr_info)
 {
     LVINFO_BUFFER(16);
@@ -1807,7 +1807,7 @@ static LVINFO_UPDATE_FUNC(compr_info)
     };
 }
 
-/* XXX */
+/* XxX remove_last */
 static MENU_SELECT_FUNC(remove_last)
 {   
     FIO_RemoveFile(raw_movie_filename);
@@ -1827,7 +1827,7 @@ static MENU_SELECT_FUNC(remove_last)
     last_written = 0;
 }  
 
-/* XXX */
+/* XxX remove_last */
 static MENU_UPDATE_FUNC(remove_last_update)
 {
     if (raw_movie_filename)
@@ -2943,7 +2943,7 @@ static const char* get_cf_dcim_dir()
 
 static char* get_next_raw_movie_file_name()
 {
-/* XXX */
+/* XxX core_name */
     char core_name[100];
     static char filename[100];
 
@@ -2966,7 +2966,7 @@ static char* get_next_raw_movie_file_name()
              * Get unique file names from the current date/time
              * last field gets incremented if there's another video with the same name
              */
-/* XXX a new file naming system */
+/* XxX new file naming system */
         snprintf(core_name, sizeof(core_name), "%02d%02d%02d-%02d%02d%02d", now.tm_year - 100, now.tm_mon +1, now.tm_mday, now.tm_hour, now.tm_min, COERCE(now.tm_sec + number, 0, 99));
         snprintf(filename, sizeof(filename), "%s/%s.MLV", get_dcim_dir(), core_name);
         core_name_now = core_name;    
@@ -3199,7 +3199,7 @@ int write_frames(FILE** pf, void* ptr, int group_size, int num_frames)
         finish_chunk(f);
         /* try to create a new chunk */
         chunk_filename = get_next_chunk_file_name(raw_movie_filename, ++mlv_chunk);
-/* XXX */
+/* XxX last_chunk */
         last_chunk = mlv_chunk -1;
         printf("Creating new chunk: %s\n", chunk_filename);
         FILE* g = FIO_CreateFile(chunk_filename);
@@ -3380,7 +3380,7 @@ void raw_video_rec_task()
             goto abort_and_check_early_stop;
         }
         
-/* XXX automatic_stop */
+/* XxX automatic_stop */
         if (automatic_stop)
         {
             int check_space_left = space_left_kb - (written_total / 1024);
@@ -3758,7 +3758,7 @@ void raw_start_stop()
     {
         printf("Stopping raw recording...\n");
         raw_recording_state = RAW_FINISHING;
-/* XXX */
+/* XxX space_left */
         space_left_kb -= (written_total / 1024);
         last_written = (written_total / 1024);
     }
@@ -3938,7 +3938,7 @@ static struct menu_entry raw_video_menu[] =
                 .icon_type = IT_ACTION,
                 .help = "Play back the last raw video clip.",
             },
-/* XXX Add Extras to the Menu */
+/* XxX add REMOVE LAST CLIP to menu */
             {
                 .name = "Remove last clip",
                 .select = remove_last,
@@ -4269,7 +4269,7 @@ static struct lvinfo_item info_items[] = {
         .preferred_position = 50,
         .priority = 10,
     },
-/* XXX */
+/* XxX space_left_updat */
     {
         .name = "space_left_update",
         .which_bar = LV_TOP_BAR_ONLY,

@@ -4691,8 +4691,8 @@ menu_redraw_do()
                 draw_ml_bottombar();
                 bfnt_draw_char(ICON_ML_Q_BACK, 680, -5, COLOR_WHITE, NO_BG_ERASE);
             }
-/* XXX stop warning about beta */
-            if (beta_should_warn());
+/* XxX stop warning about beta */
+//          if (beta_should_warn()) draw_beta_warning();
             
             #ifdef CONFIG_CONSOLE
             console_draw_from_menu();

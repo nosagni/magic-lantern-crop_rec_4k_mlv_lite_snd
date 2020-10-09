@@ -35,7 +35,7 @@ static CONFIG_INT( "audio.dgain.r",    dgain_r,        0 );
 static CONFIG_INT( "audio.mgain",      mgain,          4 );
 static CONFIG_INT( "audio.mic-power",  mic_power,      1 );
 static CONFIG_INT( "audio.o2gain",     o2gain,         0 );
-/* XXX small.am */
+/* XxX small.am */
 CONFIG_INT("small.am", small_am, 0);
 static CONFIG_INT( "am.size", am_size,  0 );
 
@@ -567,7 +567,7 @@ static struct menu_entry audio_menus[] = {
     },
     #endif
 
-/* XXX Audio Meters in menu */
+/* XxX AUDIO METERS in menu */
     #ifdef FEATURE_AUDIO_METERS
     {
         .name = "Audio Meters",

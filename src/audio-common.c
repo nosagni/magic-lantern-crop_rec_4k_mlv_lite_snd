@@ -4,7 +4,7 @@
 #include "raw.h"
 #include "zebra.h"
 #include "ml-cbr.h"
-/* XXX small_am */
+/* XxX small_am */
 extern int small_am; /* in audio-ak.c  */
 
 int sound_recording_enabled_canon()
@@ -35,7 +35,7 @@ int sound_recording_enabled()
     if (is_movie_mode() && raw_lv_is_enabled())
     {
         /* no sound option found for raw video */
-/* XXX Enable Audio Meters in RAW Recording !? */
+/* XxX enable AUDIO METERS in RAW recording !? */
         return 1;
     }
     
@@ -87,7 +87,7 @@ static CONFIG_INT( "audio.alc-enable", alc_enable,     0 );
 static int loopback = 1;
 static CONFIG_INT( "audio.input-choice",       input_choice,           4 ); //0=internal; 1=L int, R ext; 2 = stereo ext; 3 = L int, R ext balanced, 4 = auto (0 or 1)
 static CONFIG_INT( "audio.filters",    enable_filters,        0 ); //disable the HPF, LPF and pre-emphasis filters
-/* XXX cfg.draw.meters */
+/* XxX cfg.draw.meters */
 static CONFIG_INT("cfg.draw.meters", cfg_draw_meters, 0);
 static CONFIG_INT("audio.monitoring", audio_monitoring, 1);
 static int do_draw_meters = 0;
@@ -174,7 +174,7 @@ db_to_color(
             int                 db
             )
 {
-/* XXX small_am */
+/* XxX small_am */
     if (small_am)
     {
     if( db < -24 )
@@ -200,7 +200,7 @@ db_peak_to_color(
                  int                    db
                  )
 {
-/* XXX small_am */
+/* XxX small_am */
         if (small_am)
     {
     if( db < -39 )
@@ -242,7 +242,7 @@ draw_meter(
     // Skip to the desired y coord and over the
     // space for the numerical levels
     // .. and the space for showing the channel and source.
-/* XXX small_am */
+/* XxX small_am */
     if (small_am)
     {
         row += (pitch/4) * y_origin + x_origin/4;
@@ -268,7 +268,7 @@ draw_meter(
     
     // Write the meter an entire scan line at a time
     int32_t y;
-/* XXX small_am */
+/* XxX small_am */
     int le = 4;
     if (small_am) le = 1; // size of the peak 
     for(y = 0; y < (int32_t)meter_height; y++)
@@ -284,7 +284,7 @@ draw_meter(
             {
                 row[x] = bg_color_word;
             }
-/* XXX small_am */
+/* XxX small_am */
             else if( x < x_db_peak + le )
             {
                 row[x] = peak_color_word;
@@ -298,7 +298,7 @@ draw_meter(
     }
     
     // Write the current level
-/* XXX small_am */
+/* XxX small_am */
     if (small_am)
     { // for testing:
       //bmp_printf( FONT(FONT_SMALL, COLOR_WHITE, COLOR_BLACK), x_origin+32, y_origin+40, "%s %02d", label, MIN(db_peak, -1) );
@@ -352,7 +352,7 @@ static int audio_meter_width = INT_MIN;
 static int audio_meters_are_drawn_common()
 {
 #ifdef FEATURE_AUDIO_METERS
-/* XXX cfg_draw_meters */
+/* XxX cfg_draw_meters */
 	if(!cfg_draw_meters)
         return 0;
         
@@ -380,7 +380,7 @@ static void draw_meters(void)
     
     if (menu_active_and_not_hidden()) /* not managed by LV info bars; show the meters in the help bar */
     {
-/* XXX small_am */
+/* XxX small_am */
         if (small_am) return;      
         x0 = 0;
         y0 = 457;
@@ -392,7 +392,7 @@ static void draw_meters(void)
         /* don't know yet where to draw */
         return;
     }
-/* XXX small_am */
+/* XxX small_am */
     if (small_am)
     {
         static char left_label[10] = "L";
@@ -401,10 +401,10 @@ static void draw_meters(void)
         bmp_fill(COLOR_DARK_RED, 108, 15, 4, 4);// -6dB
         draw_meter( 1, 3, 12, &audio_levels[0], left_label, 128);
 #if !(defined(CONFIG_500D) || defined(CONFIG_1100D))         // mono mic on 500d and 1100d
-/* XXX small_am */
+/* XxX small_am */
         draw_meter( 1, 19, 12, &audio_levels[1], right_label, 128);
 #endif
-/* XXX small_am */
+/* XxX small_am */
     }
     else
     {
@@ -431,7 +431,7 @@ static LVINFO_UPDATE_FUNC(audio_meter_update)
      * but for quick refreshes we have a different task that redraws just the meters, not the entire bar */
     if (audio_meters_are_drawn())
     {
-/* XXX small_am */
+/* XxX small_am */
         if (small_am)
         {
             int label_width = 0;

@@ -1963,7 +1963,7 @@ static int crit_kelvin(int k)
 
     return B - R;
 }
-/* XXX Program for printing WB on screen */
+/* XxX program for printing WB on screen */
 static void print_wbal()
 {
         char wb[100];
@@ -2027,7 +2027,7 @@ static void wbs_gm_auto_run()
     lens_set_wbs_gm(i);
     NotifyBoxHide();
     redraw();
-/* XXX Print WB on screen */
+/* XxX print WB on screen */
     msleep(500);
     print_wbal();
 }

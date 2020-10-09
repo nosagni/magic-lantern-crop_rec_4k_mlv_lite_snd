@@ -55,7 +55,7 @@ void bv_update_lensinfo();
 void bv_auto_update();
 static void lensinfo_set_aperture(int raw);
 static void bv_expsim_shift();
-/* XXX show_less */
+/* XxX show_less */
 static CONFIG_INT( "show.less", show_less, 0);
 static CONFIG_INT( "skip.free.space.update", skip_free_space_update, 0);
 static CONFIG_INT("movie.log", movie_log, 0);
@@ -1838,7 +1838,7 @@ static struct menu_entry lens_menus[] = {
         .depends_on = DEP_MOVIE_MODE,
     },
     #endif
-/* XXX Add show_less to menu */
+/* XxX add show_less to menu */
     {
         .name = "Show Less",
         .priv = &show_less,
@@ -2652,7 +2652,7 @@ int get_ae_state() { return AE_STATE; }
 static LVINFO_UPDATE_FUNC(clock_update)
 {
     LVINFO_BUFFER(8);
-/* XXX show_less */
+/* XxX show_less */
     if (show_less) return;
     struct tm now;
     LoadCalendarFromRTC( &now );
@@ -2665,7 +2665,7 @@ static LVINFO_UPDATE_FUNC(disp_preset_update)
 
     /* only display this if the feature is enabled */
     extern int disp_profiles_0;
-/* XXX show_less */
+/* XxX show_less */
     if (disp_profiles_0  && !show_less)
     {
         snprintf(buffer, sizeof(buffer), 
@@ -2705,7 +2705,7 @@ static LVINFO_UPDATE_FUNC(picq_update)
     {
         /* make it obvious that LiveView is in RAW mode */
         /* (primarily for troubleshooting the raw backend, proper raw_lv_request/release calls and Magic Zoom slowdowns) */
-/* XXX show_less */
+/* XxX show_less */
         if (is_movie_mode() && !show_less)
         {
             /* todo: icon? */
@@ -2725,7 +2725,7 @@ static LVINFO_UPDATE_FUNC(alo_htp_update)
         alo == ALO_STD ? "Alo" :
         alo == ALO_HIGH ? "ALO" : ""
     );
-/* XXX WARNING */
+/* XxX WARNING */
     item->color_fg = COLOR_RED;
 }
 
@@ -2776,7 +2776,7 @@ static LVINFO_UPDATE_FUNC(temp_update)
 static LVINFO_UPDATE_FUNC(mvi_number_update)
 {
     LVINFO_BUFFER(12);
-/* XXX show_less */   
+/* XxX show_less */   
     if (is_movie_mode() && !raw_lv_is_enabled() && !show_less)
     {
         snprintf(buffer, sizeof(buffer), "MVI_%04d", get_shooting_card()->file_number);
@@ -2786,7 +2786,7 @@ static LVINFO_UPDATE_FUNC(mvi_number_update)
 static LVINFO_UPDATE_FUNC(fps_update)
 {
     LVINFO_BUFFER(8);
-/* XXX show_less */  
+/* XxX show_less */  
     if (is_movie_mode() && !show_less)
     {
         int f = fps_get_current_x1000();
@@ -2800,7 +2800,7 @@ static LVINFO_UPDATE_FUNC(fps_update)
 static LVINFO_UPDATE_FUNC(free_space_update)
 {
     LVINFO_BUFFER(8);
-/* XXX  Replace with space_left indicator */
+/* XxX  replace with space_left indicator */
     if (raw_lv_is_enabled() && skip_free_space_update) return;
     if (raw_lv_is_enabled() && show_less) return;
     if (RECORDING)
@@ -2825,7 +2825,7 @@ static LVINFO_UPDATE_FUNC(free_space_update)
 static LVINFO_UPDATE_FUNC(mode_update)
 {
     LVINFO_BUFFER(8);
-/* XXX show_less */
+/* XxX show_less */
     if (show_less) return;
     snprintf(buffer, sizeof(buffer), get_shootmode_name_short(shooting_mode_custom));
 }
@@ -2892,7 +2892,7 @@ static LVINFO_UPDATE_FUNC(tv_update)
     {
         snprintf(buffer, sizeof(buffer), "%s", lens_format_shutter(lens_info.raw_shutter));
     }
-/* XXX Warning if shutter speed is not 50 for 25fps */    
+/* XxX warning if shutter speed is not 50 for 25fps */    
     int check_shutter = get_current_shutter_reciprocal_x1000() / 1000;
     int check_fps = fps_get_current_x1000() / 1000;
     if (check_fps == 25 && check_shutter != 50)
@@ -3014,7 +3014,7 @@ static LVINFO_UPDATE_FUNC(iso_update)
 static LVINFO_UPDATE_FUNC(wb_update)
 {
     LVINFO_BUFFER(16);
-/* XXX show less */
+/* XxX show less */
     if (raw_lv_is_enabled() && show_less) return;
     if( lens_info.wb_mode == WB_KELVIN )
     {
@@ -3065,7 +3065,7 @@ extern LVINFO_UPDATE_FUNC(focus_dist_update);
 static LVINFO_UPDATE_FUNC(af_mf_update)
 {
     LVINFO_BUFFER(4);
-/* XXX Warning that Auto Focus is on ++ */
+/* XxX warning that AUTO FOCUS is on ++ */
     
     if (!is_movie_mode())
     {
