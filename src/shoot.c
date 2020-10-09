@@ -1963,6 +1963,23 @@ static int crit_kelvin(int k)
 
     return B - R;
 }
+/* XXX Program for printing WB on screen */
+static void print_wbal()
+{
+        char wb[100];
+        char shift[100];
+
+        if( lens_info.wb_mode == WB_KELVIN )
+            {
+                snprintf(wb, sizeof(wb), lens_info.kelvin >= 10000 ? "%5dK" : "%4dK ", lens_info.kelvin);
+                snprintf(shift, sizeof(shift), "%s%d %s%d", lens_info.wbs_gm > 0 ? "G:" : "M:", ABS(lens_info.wbs_gm), lens_info.wbs_ba > 0 ? "A:" : "B:", ABS(lens_info.wbs_ba));
+
+                bmp_printf(FONT(FONT_LARGE, COLOR_WHITE, COLOR_BG), 253, 325, " %s ", wb);
+                bmp_printf(FONT(FONT_LARGE, COLOR_WHITE, COLOR_BG), 365, 325, " %s ", shift);
+                msleep(3000);
+                redraw();
+            }
+}
 
 static int crit_wbs_gm(int k)
 {
@@ -2010,6 +2027,9 @@ static void wbs_gm_auto_run()
     lens_set_wbs_gm(i);
     NotifyBoxHide();
     redraw();
+/* XXX Print WB on screen */
+    msleep(500);
+    print_wbal();
 }
 
 static MENU_UPDATE_FUNC(wbs_gm_display)
