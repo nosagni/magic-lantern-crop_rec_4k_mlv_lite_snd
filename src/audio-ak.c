@@ -35,6 +35,18 @@ static CONFIG_INT( "audio.dgain.r",    dgain_r,        0 );
 static CONFIG_INT( "audio.mgain",      mgain,          4 );
 static CONFIG_INT( "audio.mic-power",  mic_power,      1 );
 static CONFIG_INT( "audio.o2gain",     o2gain,         0 );
+/* XXX small.am */
+CONFIG_INT("small.am", small_am, 0);
+static CONFIG_INT( "am.size", am_size,  0 );
+
+static MENU_UPDATE_FUNC(am_print)
+{
+    if (cfg_draw_meters)
+    {
+        MENU_SET_VALUE(am_size == 0 ? "Large" : "Small");
+    }
+    small_am = am_size;
+}
 
 int audio_meters_are_drawn()
 {
@@ -555,21 +567,29 @@ static struct menu_entry audio_menus[] = {
     },
     #endif
 
-/* any reason to turn these off?
+/* XXX Audio Meters in menu */
     #ifdef FEATURE_AUDIO_METERS
     {
         .name = "Audio Meters",
         .priv           = &cfg_draw_meters,
+        .update = am_print,
         .max = 1,
-#ifndef CONFIG_AUDIO_CONTROLS
-        .help = "While recording only. -40...0 dB, yellow -12 dB, red -3 dB.",
-#else
-        .help = "Bar peak decay, -40...0 dB, yellow at -12 dB, red at -3 dB.",
-#endif
-        .depends_on = DEP_GLOBAL_DRAW | DEP_SOUND_RECORDING,
+        .help = "Bar peak decay, -40...0 dB, yellow at -12 dB, red at -3 dB.\nSmall Audio Meter: White marker at -12 dB, red at -6 dB.",
+        .depends_on = DEP_GLOBAL_DRAW,
+        .children =  (struct menu_entry[]) {
+            {
+                .name = "Audio Meters Size",
+                .priv = &am_size, 
+                .max = 1,
+                .choices = (const char *[]) {"Large", "Small"},
+                .icon_type = IT_SIZE,
+                .help = "Large or small size Audio Meters.",
+            },
+            MENU_EOL
+        },
     },
     #endif
-*/
+
 
     #ifdef FEATURE_HEADPHONE_MONITORING
     {

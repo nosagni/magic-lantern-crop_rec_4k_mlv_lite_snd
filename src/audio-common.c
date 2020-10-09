@@ -4,6 +4,8 @@
 #include "raw.h"
 #include "zebra.h"
 #include "ml-cbr.h"
+/* XXX small_am */
+extern int small_am; /* in audio-ak.c  */
 
 int sound_recording_enabled_canon()
 {
@@ -33,7 +35,8 @@ int sound_recording_enabled()
     if (is_movie_mode() && raw_lv_is_enabled())
     {
         /* no sound option found for raw video */
-        return 0;
+/* XXX Enable Audio Meters in RAW Recording !? */
+        return 1;
     }
     
     /* only H.264 is left => check the setting from Canon menu */
@@ -84,7 +87,8 @@ static CONFIG_INT( "audio.alc-enable", alc_enable,     0 );
 static int loopback = 1;
 static CONFIG_INT( "audio.input-choice",       input_choice,           4 ); //0=internal; 1=L int, R ext; 2 = stereo ext; 3 = L int, R ext balanced, 4 = auto (0 or 1)
 static CONFIG_INT( "audio.filters",    enable_filters,        0 ); //disable the HPF, LPF and pre-emphasis filters
-#define cfg_draw_meters 1
+/* XXX cfg.draw.meters */
+static CONFIG_INT("cfg.draw.meters", cfg_draw_meters, 0);
 static CONFIG_INT("audio.monitoring", audio_monitoring, 1);
 static int do_draw_meters = 0;
 
@@ -170,6 +174,17 @@ db_to_color(
             int                 db
             )
 {
+/* XXX small_am */
+    if (small_am)
+    {
+    if( db < -24 )
+        return 0x0B; // -40dB --> -27dB: COLOR_BLUE
+    if( db < -6 )
+        return 0x06; // -24dB --> -7dB: COLOR_GREEN1
+    return 0x0c; // -6dB --> 0dB: COLOR_DARK_RED
+    }
+    else
+    {
     if( db < -25 )
         return 0x2F; // white
     if( db < -12 )
@@ -177,6 +192,7 @@ db_to_color(
     if( db < -3 )
         return 0x0F; // yellow
     return 0x0c; // dull red
+    }
 }
 
 static uint8_t
@@ -184,6 +200,19 @@ db_peak_to_color(
                  int                    db
                  )
 {
+/* XXX small_am */
+        if (small_am)
+    {
+    if( db < -39 )
+        return 0x02; // -40dB: COLOR_BLACK
+    if( db < -24 )
+        return 0x09; // -39dB --> -25dB: COLOR_LIGHT_BLUE
+    if( db < -6 )
+        return 0x07; // -24dB --> -7dB: COLOR_GREEN2
+    return 0x08; // -6dB --> 0dB: COLOR_RED
+    }
+    else
+    {
     if( db < -25 )
         return 11; // dark blue
     if( db < -12 )
@@ -191,6 +220,7 @@ db_peak_to_color(
     if( db < -3 )
         return 15; // bright yellow
     return 0x08; // bright red
+    }
 }
 
 
@@ -212,7 +242,15 @@ draw_meter(
     // Skip to the desired y coord and over the
     // space for the numerical levels
     // .. and the space for showing the channel and source.
+/* XXX small_am */
+    if (small_am)
+    {
+        row += (pitch/4) * y_origin + x_origin/4;
+    }
+    else
+    {
     row += (pitch/4) * y_origin + AUDIO_METER_OFFSET + x_origin/4;
+    }
     
     const int32_t db_peak_fast = audio_level_to_db( level->peak_fast );
     const int32_t db_peak = audio_level_to_db( level->peak );
@@ -230,6 +268,9 @@ draw_meter(
     
     // Write the meter an entire scan line at a time
     int32_t y;
+/* XXX small_am */
+    int le = 4;
+    if (small_am) le = 1; // size of the peak 
     for(y = 0; y < (int32_t)meter_height; y++)
     {
         int32_t x;
@@ -243,7 +284,8 @@ draw_meter(
             {
                 row[x] = bg_color_word;
             }
-            else if( x < x_db_peak + 4 )
+/* XXX small_am */
+            else if( x < x_db_peak + le )
             {
                 row[x] = peak_color_word;
             }
@@ -256,7 +298,16 @@ draw_meter(
     }
     
     // Write the current level
+/* XXX small_am */
+    if (small_am)
+    { // for testing:
+      //bmp_printf( FONT(FONT_SMALL, COLOR_WHITE, COLOR_BLACK), x_origin+32, y_origin+40, "%s %02d", label, MIN(db_peak, -1) );
+    }
+    else
+    {
     bmp_printf( FONT(FONT_SMALL, COLOR_WHITE, COLOR_BLACK), x_origin, y_origin, "%s %02d", label, MIN(db_peak, -1) );
+    }
+    
 }
 
 
@@ -301,7 +352,8 @@ static int audio_meter_width = INT_MIN;
 static int audio_meters_are_drawn_common()
 {
 #ifdef FEATURE_AUDIO_METERS
-    if (!sound_recording_enabled())
+/* XXX cfg_draw_meters */
+	if(!cfg_draw_meters)
         return 0;
         
     if (gui_menu_shown())
@@ -328,6 +380,8 @@ static void draw_meters(void)
     
     if (menu_active_and_not_hidden()) /* not managed by LV info bars; show the meters in the help bar */
     {
+/* XXX small_am */
+        if (small_am) return;      
         x0 = 0;
         y0 = 457;
         width = 640;    /* can be full-screen */
@@ -338,13 +392,28 @@ static void draw_meters(void)
         /* don't know yet where to draw */
         return;
     }
-    
+/* XXX small_am */
+    if (small_am)
+    {
+        static char left_label[10] = "L";
+        static char right_label[10] = "R";
+        bmp_fill(COLOR_WHITE, 88, 15, 4, 4);// -12dB
+        bmp_fill(COLOR_DARK_RED, 108, 15, 4, 4);// -6dB
+        draw_meter( 1, 3, 12, &audio_levels[0], left_label, 128);
+#if !(defined(CONFIG_500D) || defined(CONFIG_1100D))         // mono mic on 500d and 1100d
+/* XXX small_am */
+        draw_meter( 1, 19, 12, &audio_levels[1], right_label, 128);
+#endif
+/* XXX small_am */
+    }
+    else
+    {
     draw_meter( x0, y0 + 0, 10, &audio_levels[0], left_label, width);
     draw_ticks( x0, y0 + 10, 2, width);
 #if !(defined(CONFIG_500D) || defined(CONFIG_1100D))         // mono mic on 500d and 1100d
     draw_meter( x0, y0 + 12, 10, &audio_levels[1], right_label, width);
 #endif
-
+    }
         if (gui_menu_shown() && alc_enable)
         {
 #ifdef CONFIG_600D
@@ -362,6 +431,18 @@ static LVINFO_UPDATE_FUNC(audio_meter_update)
      * but for quick refreshes we have a different task that redraws just the meters, not the entire bar */
     if (audio_meters_are_drawn())
     {
+/* XXX small_am */
+        if (small_am)
+        {
+            int label_width = 0;
+            item->width = 120;
+            audio_meter_x = item->x - item->width/2;
+            audio_meter_y = item->y;
+            audio_meter_width = item->width - label_width;
+            item->custom_drawing = 1;
+        }
+        else // if Regular
+        {
         /* if it's alone, draw it big; if not, draw it smaller */
         int is_big = fontspec_width(item->fontspec) >= fontspec_width(FONT_MED_LARGE);
         int label_width = AUDIO_METER_OFFSET*4;
@@ -371,7 +452,7 @@ static LVINFO_UPDATE_FUNC(audio_meter_update)
         audio_meter_y = item->y;
         audio_meter_width = item->width - label_width;
         item->custom_drawing = 1;
-        
+        }
         if (can_draw)
         {
             /* could be a little cleaner, but should do the job as long as draw_meters is thread-safe */
