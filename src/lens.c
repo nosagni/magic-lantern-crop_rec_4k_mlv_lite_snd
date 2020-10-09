@@ -55,7 +55,9 @@ void bv_update_lensinfo();
 void bv_auto_update();
 static void lensinfo_set_aperture(int raw);
 static void bv_expsim_shift();
-
+/* XXX show_less */
+static CONFIG_INT( "show.less", show_less, 0);
+static CONFIG_INT( "skip.free.space.update", skip_free_space_update, 0);
 static CONFIG_INT("movie.log", movie_log, 0);
 #ifdef CONFIG_FULLFRAME
 #define SENSORCROPFACTOR 10
@@ -1836,6 +1838,21 @@ static struct menu_entry lens_menus[] = {
         .depends_on = DEP_MOVIE_MODE,
     },
     #endif
+/* XXX Add show_less to menu */
+    {
+        .name = "Show Less",
+        .priv = &show_less,
+        .max = 1,
+        .help = "Show less information in top and bottom bars.",
+        .depends_on = DEP_MOVIE_MODE,
+    },
+    {
+        .name = "Skip free_space_update",
+        .priv = &skip_free_space_update,
+        .max = 1,
+        .help = "Skip free_space_update information in top bar.",
+        .depends_on = DEP_MOVIE_MODE,
+    },
 };
 
 static MENU_UPDATE_FUNC(lens_name_display)
@@ -2635,6 +2652,8 @@ int get_ae_state() { return AE_STATE; }
 static LVINFO_UPDATE_FUNC(clock_update)
 {
     LVINFO_BUFFER(8);
+/* XXX show_less */
+    if (show_less) return;
     struct tm now;
     LoadCalendarFromRTC( &now );
     snprintf(buffer, sizeof(buffer), "%02d:%02d", now.tm_hour, now.tm_min);
@@ -2646,7 +2665,8 @@ static LVINFO_UPDATE_FUNC(disp_preset_update)
 
     /* only display this if the feature is enabled */
     extern int disp_profiles_0;
-    if (disp_profiles_0)
+/* XXX show_less */
+    if (disp_profiles_0  && !show_less)
     {
         snprintf(buffer, sizeof(buffer), 
             "DISP %d", get_disp_mode()
@@ -2685,7 +2705,8 @@ static LVINFO_UPDATE_FUNC(picq_update)
     {
         /* make it obvious that LiveView is in RAW mode */
         /* (primarily for troubleshooting the raw backend, proper raw_lv_request/release calls and Magic Zoom slowdowns) */
-        if (is_movie_mode())
+/* XXX show_less */
+        if (is_movie_mode() && !show_less)
         {
             /* todo: icon? */
             snprintf(buffer, sizeof(buffer), "RAW");
@@ -2755,8 +2776,8 @@ static LVINFO_UPDATE_FUNC(temp_update)
 static LVINFO_UPDATE_FUNC(mvi_number_update)
 {
     LVINFO_BUFFER(12);
-    
-    if (is_movie_mode() && !raw_lv_is_enabled())
+/* XXX show_less */   
+    if (is_movie_mode() && !raw_lv_is_enabled() && !show_less)
     {
         snprintf(buffer, sizeof(buffer), "MVI_%04d", get_shooting_card()->file_number);
     }
@@ -2765,8 +2786,8 @@ static LVINFO_UPDATE_FUNC(mvi_number_update)
 static LVINFO_UPDATE_FUNC(fps_update)
 {
     LVINFO_BUFFER(8);
-
-    if (is_movie_mode())
+/* XXX show_less */  
+    if (is_movie_mode() && !show_less)
     {
         int f = fps_get_current_x1000();
         snprintf(buffer, sizeof(buffer), 
@@ -2779,7 +2800,9 @@ static LVINFO_UPDATE_FUNC(fps_update)
 static LVINFO_UPDATE_FUNC(free_space_update)
 {
     LVINFO_BUFFER(8);
-    
+/* XXX  Replace with space_left indicator */
+    if (raw_lv_is_enabled() && skip_free_space_update) return;
+    if (raw_lv_is_enabled() && show_less) return;
     if (RECORDING)
     {
         /* leave space for the recording indicators */
@@ -2802,6 +2825,8 @@ static LVINFO_UPDATE_FUNC(free_space_update)
 static LVINFO_UPDATE_FUNC(mode_update)
 {
     LVINFO_BUFFER(8);
+/* XXX show_less */
+    if (show_less) return;
     snprintf(buffer, sizeof(buffer), get_shootmode_name_short(shooting_mode_custom));
 }
 
@@ -2989,7 +3014,8 @@ static LVINFO_UPDATE_FUNC(iso_update)
 static LVINFO_UPDATE_FUNC(wb_update)
 {
     LVINFO_BUFFER(16);
-    
+/* XXX show less */
+    if (raw_lv_is_enabled() && show_less) return;
     if( lens_info.wb_mode == WB_KELVIN )
     {
         snprintf(buffer, sizeof(buffer), "%dK", lens_info.kelvin);
