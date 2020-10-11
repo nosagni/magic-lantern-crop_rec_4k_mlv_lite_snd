@@ -19,7 +19,7 @@ static void scrnshot_task()
     running = 1;
     TASK_LOOP
     {
-        msleep(500);
+        msleep(1000);
         if(stop) break;
         if(trigger) take_screenshot("SS_%04d.ppm", SCREENSHOT_BMP | SCREENSHOT_YUV);
         trigger = 0;
